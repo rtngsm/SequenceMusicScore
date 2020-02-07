@@ -72,14 +72,14 @@ for file in filename_2:
     new.append(file.split(".")[0]) ### music_name
     new.append("mp3")    ###file_type
     new.append("folk")  ###music_type
-    new.append(librosa.get_duration(music,sr = sr)) #音乐时间
+    new.append(librosa.get_duration(music,sr = sr)) 
     zcr = librosa.feature.zero_crossing_rate(music)
-    new.append(np.mean(zcr))  #过零率
+    new.append(np.mean(zcr))  
     new.append(np.std(zcr))
     rmse = librosa.feature.rmse(music)
-    new.append(np.mean(rmse)) #平均帧能量
+    new.append(np.mean(rmse)) 
     new.append(np.std(rmse))
-    spec = librosa.feature.spectral_centroid(music,sr = sr)  ##光谱矩心
+    spec = librosa.feature.spectral_centroid(music,sr = sr)  
     new.append(np.mean(spec))
     new.append(np.std(spec))
     flatness = librosa.feature.spectral_flatness(music)
@@ -89,7 +89,7 @@ for file in filename_2:
     new.append(np.mean(roll_off))
     new.append(np.std(roll_off))
     
-    Tonn = librosa.feature.tonnetz(music,sr = sr)  ##音调质心，6个维度，0-5
+    Tonn = librosa.feature.tonnetz(music,sr = sr)  
     for i in range(0,6):
         new.append(np.mean(Tonn[i,]))
         new.append(np.std(Tonn[i,]))
@@ -107,14 +107,14 @@ for file in filename_3:
     new.append(file.split(".")[0]) ### music_name
     new.append("mp3")    ###file_type
     new.append("jazz")  ###music_type
-    new.append(librosa.get_duration(music,sr = sr)) #音乐时间
+    new.append(librosa.get_duration(music,sr = sr)) 
     zcr = librosa.feature.zero_crossing_rate(music)
-    new.append(np.mean(zcr))  #过零率
+    new.append(np.mean(zcr))  
     new.append(np.std(zcr))
     rmse = librosa.feature.rmse(music)
-    new.append(np.mean(rmse)) #平均帧能量
+    new.append(np.mean(rmse)) 
     new.append(np.std(rmse))
-    spec = librosa.feature.spectral_centroid(music,sr = sr)  ##光谱矩心
+    spec = librosa.feature.spectral_centroid(music,sr = sr)  
     new.append(np.mean(spec))
     new.append(np.std(spec))
     flatness = librosa.feature.spectral_flatness(music)
@@ -124,7 +124,7 @@ for file in filename_3:
     new.append(np.mean(roll_off))
     new.append(np.std(roll_off))
     
-    Tonn = librosa.feature.tonnetz(music,sr = sr)  ##音调质心，6个维度，0-5
+    Tonn = librosa.feature.tonnetz(music,sr = sr)  
     for i in range(0,6):
         new.append(np.mean(Tonn[i,]))
         new.append(np.std(Tonn[i,]))
