@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Feb  3 18:36:32 2020
-
+Use wav_feture data, KNN and LDC classifers to implement the voting method. 
 @author: rtn
 """
 
@@ -72,7 +72,7 @@ col = ["knn_22_16","knn_22_32","knn_44_16","knn_44_32","ldc_22_16","ldc_22_32","
 table = pd.DataFrame(columns = col)
 for r in range(1000):
 
-    # 区分训练集与测试集
+    # train and test
     ####1:knn_22_16,2:knn_22_32,3:knn_44_16,4:knn_44_32,5:ldc_22_16,6:ldc_22_32,7:ldc_44_16,8:ldc_44_32
     train_22_16, test_22_16, train_22_32, test_22_32, train_44_16, test_44_16, train_44_32, test_44_32 = train_test_split(data_22_16, data_22_32,data_44_16, data_44_32, test_size=0.5, random_state = r)
     pred_1 , pred_1_code, score_1 = KNN(train_22_16,test_22_16) 
@@ -89,7 +89,7 @@ for r in range(1000):
     #pred_table = {"p1":pred_1_code,"p2":pred_2_code,"p3":pred_3_code,"p4":pred_4_code,"p5":pred_5_code,"p6":pred_6_code,"p7":pred_7_code,"p8":pred_8_code}
     #pred_table = np.array(pred_table)
     
-    w_const = np.array([1,1,1,1,2,2,2,2])  ###权重设置
+    w_const = np.array([1,1,1,1,2,2,2,2])  ###weight setting
     w_accuracy = np.array([score_1,score_2,score_3,score_4,score_5,score_6,score_7,score_8])
     
     ####classic:(1,0,0),jazz(0,1,0),folk(0,0,1)
@@ -103,11 +103,11 @@ for r in range(1000):
                         np.array(pred_5_code)*w_accuracy[4]+np.array(pred_6_code)*w_accuracy[5]+\
                         np.array(pred_7_code)*w_accuracy[6]+np.array(pred_8_code)*w_accuracy[7]
     
-    ###投票后的结果
+    ### accuracy after voting
     vote_code_const = np.apply_along_axis(np.argmax, 1, vote_code_const)
     vote_code_accuracy = np.apply_along_axis(np.argmax, 1, vote_code_accuracy)
 
-    ###vote_code中 0：classic，1：jazz，2：folk
+    ###vote_code 0：classic，1：jazz，2：folk
     pred_vote_const = []
     pred_vote_accuracy = []
 
