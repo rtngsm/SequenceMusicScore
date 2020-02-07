@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Sep 22 10:41:01 2019
-
+functions used in main.py
 @author: rtn
 """
 
@@ -26,21 +26,20 @@ def pitch_note():
         for j in step:
             pitch.append(str(i)+j)
     pitch.append('8C')
-    pitch.append('rest') ## 110个 nodes,依据钢琴琴键
-    
+    pitch.append('rest')     
     pitch_m = []
     for i in pitch:
         if "-1" in i:
             continue
         else:
-            pitch_m.append(i) ##转移矩阵时只有89个nodes
+            pitch_m.append(i) ##89 nodes according to piano keyboard
     note = ["32nd","16th","eighth","quarter","half","whole"]
     return pitch_m,note
 
 
 
-def estimator(trainset):
-    cat = list(set(trainset['type'])) #记录类别变量
+def estimator(trainset): 
+    cat = list(set(trainset['type'])) # type of music 
     pitch , note = pitch_note()
     n = trainset.shape[0]
     N = {}
@@ -56,7 +55,7 @@ def estimator(trainset):
             p_first_beat[c] = np.array([0]*6)
     for i in range(0,trainset.shape[0]):
         #print(i)
-        ##估计先验概率estimate
+        ##estimate the prior probability
         for c in cat:
             if list(trainset['type'])[i] ==c:
                 N[c] = N[c]+1
@@ -70,7 +69,7 @@ def estimator(trainset):
             p_first_beat[c][num_1] = p_first_beat[c][num_1] + 1
     for c in cat:
         pi_before[c] = N[c]/n
-        ########################################################################修改这里，估计转移概率的分母需要调整，使得我们的估计满足加和为1的限制
+        ######calculate the transitional probablities in pitch and beat
         for j in range(0,89):
             sum_p = sum(p_transfer[c][(j*89):(j*89+89)])
             if sum_p!=0:
@@ -88,7 +87,7 @@ def estimator(trainset):
         p_first_beat[c] = p_first_beat[c]/N[c]
  
         
-    #将估计得到的转移矩阵为0的格子加上一个1e-8，方便之后的矩阵乘法
+    #plus 1e-3 in transional matrix
     for c in cat:
         for t in range(0,7957):
             if p_transfer[c][t]==0:
@@ -121,10 +120,10 @@ def Posterior(dataset,pi_before,p_first_pitch,p_first_beat,p_transfer,cat,pitch,
         for c in cat:
             posterior_now[c] = np.log(pi_before[c]) + p_first_pitch[c][pitch.index(list(dataset['first_pitch'])[i])] + p_first_beat[c][note.index(list(dataset['first_beat'])[i])]
             posterior_now[c] = posterior_now[c]+ sum(dataset.iloc[i][1:7958]*p_transfer[c])
-        type_predicted.append(max(posterior_now,key = posterior_now.get)) ##记下预测类别
+        type_predicted.append(max(posterior_now,key = posterior_now.get)) #
         posterior_log.loc[i] = posterior_now
     accuracy = get_accuracy(dataset,type_predicted)
-    ####计算后验概率，之前得到的是log处理后的，为了之后LR模型作为输入
+    ####calculate the posterior probability 
     posterior = pd.DataFrame(columns = cat)
     posterior['jazz'] = 1/(1 + np.exp(posterior_log['folk']-posterior_log['jazz']) + np.exp(posterior_log['classic']-posterior_log['jazz']))
     posterior['folk'] = 1/(1 + np.exp(posterior_log['jazz']-posterior_log['folk']) + np.exp(posterior_log['classic']-posterior_log['folk']))
@@ -143,7 +142,7 @@ def SVM_AUDIO(trainset,testset,cat):
     pred = model.predict(x_test)
     accu_svm_audio = get_accuracy(testset,pred)
     
-    ####svm预测得到的第一列是classic的概率，第2列是folk的概率，第三列是jazz的概率，需要重新按照cat的顺序整理
+    ####svm,the first column refers to the classic，the second refers to the folk，the third refers to the jazz
     posterior_svm_train = pd.DataFrame(columns = cat)
     posterior_svm_train['classic'] = prob_train_svm_tmp[:,0]
     posterior_svm_train['folk'] = prob_train_svm_tmp[:,1]
@@ -169,7 +168,7 @@ def DT_AUDIO(trainset,testset,cat):
     pred = model.predict(x_test)
     accu_dt_audio = get_accuracy(testset,pred)
     
-    ####svm预测得到的第一列是classic的概率，第2列是folk的概率，第三列是jazz的概率，需要重新按照cat的顺序整理
+    ####dt,the first column refers to the classic，the second refers to the folk，the third refers to the jazz
     posterior_dt_train = pd.DataFrame(columns = cat)
     posterior_dt_train['classic'] = prob_train_dt_tmp[:,0]
     posterior_dt_train['folk'] = prob_train_dt_tmp[:,1]
@@ -184,7 +183,6 @@ def DT_AUDIO(trainset,testset,cat):
     
     return posterior_dt_train, posterior_dt_test, accu_dt_audio
     
-######### 数据过少，神经网络拟合效果非常差
 def NETWORK_AUDIO(trainset,testset,cat):
     title = trainset.columns.values.tolist()
     x_train = trainset[title[8059:8107]]
@@ -196,7 +194,7 @@ def NETWORK_AUDIO(trainset,testset,cat):
     pred = model.predict(x_test)
     accu_network_audio = get_accuracy(testset,pred)
     
-    ####network预测得到的第一列是classic的概率，第2列是folk的概率，第三列是jazz的概率，需要重新按照cat的顺序整理
+    ####network,the first column refers to the classic，the second refers to the folk，the third refers to the jazz
     posterior_network_train = pd.DataFrame(columns = cat)
     posterior_network_train['classic'] = prob_train_network_tmp[:,0]
     posterior_network_train['folk'] = prob_train_network_tmp[:,1]
@@ -222,7 +220,7 @@ def NB_AUDIO(trainset,testset,cat):
     pred = model.predict(x_test)
     accu_nb_audio = get_accuracy(testset,pred)
     
-    ####nb预测得到的第一列是classic的概率，第2列是folk的概率，第三列是jazz的概率，需要重新按照cat的顺序整理
+    ####nb,the first column refers to the classic，the second refers to the folk，the third refers to the jazz
     posterior_nb_train = pd.DataFrame(columns = cat)
     posterior_nb_train['classic'] = prob_train_nb_tmp[:,0]
     posterior_nb_train['folk'] = prob_train_nb_tmp[:,1]
@@ -236,19 +234,19 @@ def NB_AUDIO(trainset,testset,cat):
     posterior_nb_test.columns = ['jazz_nb','folk_nb','classic_nb']
     
     return posterior_nb_train, posterior_nb_test, accu_nb_audio
-
+''' 
 def LR(posterior_train_1,posterior_train_2,Train_y,posterior_test_1,posterior_test_2,Test_y):
     Train_x = posterior_train_1.join(posterior_train_2)
-    Train_x = Train_x.ix[:,[0,1,3,4]] ##为了避免多重共线性，选取[["jazz","folk","jazz_svm","folk_svm"]]
+    Train_x = Train_x.ix[:,[0,1,3,4]] ##To avoid multicollinearity,select[["jazz","folk","jazz_svm","folk_svm"]]
     Test_x = posterior_test_1.join(posterior_test_2)
-    Test_x = Test_x.ix[:,[0,1,3,4]] ##为了避免多重共线性，选取[["jazz","folk","jazz_svm","folk_svm"]]
-    ############## 构建新数据，做Logitmodel
+    Test_x = Test_x.ix[:,[0,1,3,4]] ##To avoid multicollinearity，select[["jazz","folk","jazz_svm","folk_svm"]]
+    ############## Logitmodel
     lr = linear_model.LogisticRegression(multi_class='ovr')
     lr.fit(Train_x,Train_y)
     pred_lr = lr.predict(Test_x)
     accu_lr = sum(1*(pred_lr==Test_y))/len(Test_y) ###88.8%
     return accu_lr
-
+'''
 
 def get_keys(d, value):
     return [k for k,v in d.items() if v == value]
